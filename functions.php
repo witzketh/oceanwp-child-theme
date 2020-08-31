@@ -28,3 +28,33 @@ function oceanwp_child_enqueue_parent_style() {
 	
 }
 add_action( 'wp_enqueue_scripts', 'oceanwp_child_enqueue_parent_style' );
+
+// Allow subscribers to see Private posts and pages
+$subRole = get_role( 'subscriber' );
+$subRole->add_cap( 'read_private_posts' );
+$subRole->add_cap( 'read_private_pages' );
+
+// Redirect to home page on login
+function loginRedirect( $redirect_to, $request_redirect_to, $user ) {
+    if ( is_a( $user, 'WP_User' ) && $user->has_cap( 'edit_posts' ) === false ) {
+        return get_bloginfo( 'siteurl' );
+    }
+    return $redirect_to;
+}
+add_filter( 'login_redirect', 'loginRedirect', 10, 3 );
+
+//Remove dashboard view for subscribers
+function remove_dashboard_meta() {
+remove_meta_box( ‘dashboard_incoming_links’, ‘dashboard’, ‘normal’ );
+remove_meta_box( ‘dashboard_plugins’, ‘dashboard’, ‘normal’ );
+remove_meta_box( ‘dashboard_primary’, ‘dashboard’, ‘side’ );
+remove_meta_box( ‘dashboard_secondary’, ‘dashboard’, ‘normal’ );
+remove_meta_box( ‘dashboard_quick_press’, ‘dashboard’, ‘side’ );
+remove_meta_box( ‘dashboard_recent_drafts’, ‘dashboard’, ‘side’ );
+remove_meta_box( ‘dashboard_recent_comments’, ‘dashboard’, ‘normal’ );
+remove_meta_box( ‘dashboard_right_now’, ‘dashboard’, ‘normal’ );
+remove_meta_box( ‘dashboard_activity’, ‘dashboard’, ‘normal’);//since 3.8
+}
+if (!current_user_can('edit_posts')) {
+add_action(‘admin_init’, ‘remove_dashboard_meta’ );
+}
